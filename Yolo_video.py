@@ -1,6 +1,6 @@
 # import the necessary packages
 import numpy as np
-import imutils
+# import imutils
 import time
 from scipy import spatial
 import cv2
@@ -16,6 +16,8 @@ inputWidth, inputHeight = 416, 416
 LABELS, weightsPath, configPath, inputVideoPath, outputVideoPath,\
 	preDefinedConfidence, preDefinedThreshold, USE_GPU= parseCommandLineArguments()
 
+print(f"[*Args] = {USE_GPU}")
+
 # Initialize a list of colors to represent each possible class label
 np.random.seed(42)
 COLORS = np.random.randint(0, 255, size=(len(LABELS), 3),
@@ -29,7 +31,7 @@ def displayVehicleCount(frame, vehicle_count):
 		'Detected Vehicles: ' + str(vehicle_count), #Label
 		(20, 20), #Position
 		cv2.FONT_HERSHEY_SIMPLEX, #Font
-		0.8, #Size
+		1, #Size
 		(0, 0xFF, 0), #Color
 		2, #Thickness
 		cv2.FONT_HERSHEY_COMPLEX_SMALL,
@@ -55,7 +57,7 @@ def boxAndLineOverlap(x_mid_point, y_mid_point, line_coordinates):
 def displayFPS(start_time, num_frames):
 	current_time = int(time.time())
 	if(current_time > start_time):
-		os.system('clear') # Equivalent of CTRL+L on the terminal
+		os.system('cls') # Equivalent of CTRL+L on the terminal
 		print("FPS:", num_frames)
 		num_frames = 0
 		start_time = current_time
@@ -162,9 +164,10 @@ def count_vehicles(idxs, boxes, classIDs, vehicle_count, previous_frame_detectio
 # load our YOLO object detector trained on COCO dataset (80 classes)
 # and determine only the *output* layer names that we need from YOLO
 print("[INFO] loading YOLO from disk...")
-net = cv2.dnn.readNetFromDarknet(configPath, weightsPath)
+net = cv2.dnn.readNetFromDarknet("yolo-coco/yolov3.cfg", "yolo-coco/yolov3.weights")
 
 #Using GPU if flag is passed
+# USE_GPU = True # param
 if USE_GPU:
 	net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
 	net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
