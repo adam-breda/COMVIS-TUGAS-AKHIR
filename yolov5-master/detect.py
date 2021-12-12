@@ -16,10 +16,14 @@ import argparse
 import os
 import sys
 from pathlib import Path
+from typing import List, Tuple
 
 import cv2
+from numpy.core.numeric import identity
+from numpy.core.records import array
 import torch
 import torch.backends.cudnn as cudnn
+from EucledianTracker import EuclideanDistTracker,TrackerStatus
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[0]  # YOLOv5 root directory
@@ -99,6 +103,11 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
     # Run inference
     model.warmup(imgsz=(1, 3, *imgsz), half=half)  # warmup
     dt, seen = [0.0, 0.0, 0.0], 0
+
+    # Untuk mencari region of interest
+    roi_bbox = None # (600, 602, 660, 231)
+    tracker = EuclideanDistTracker(0,30,min_frame_detected=10)
+    _counterbodoh = 0
     for path, im, im0s, vid_cap, s in dataset:
         t1 = time_sync()
         im = torch.from_numpy(im).to(device)
@@ -131,6 +140,11 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
             else:
                 p, im0, frame = path, im0s.copy(), getattr(dataset, 'frame', 0)
 
+            if roi_bbox == None:
+                x,y,w,h = cv2.selectROI(im0, False)
+                roi_bbox = (x, y, x+w, y+h)
+                print(roi_bbox)
+            
             p = Path(p)  # to Path
             save_path = str(save_dir / p.name)  # im.jpg
             txt_path = str(save_dir / 'labels' / p.stem) + ('' if dataset.mode == 'image' else f'_{frame}')  # im.txt
@@ -148,6 +162,8 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
 
                 # Write results
+                # XYWH
+                detectedxywh_s: 'List(Tuple(int, int, int, int))' = []
                 for *xyxy, conf, cls in reversed(det):
                     if save_txt:  # Write to file
                         xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
@@ -158,16 +174,49 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                     if save_img or save_crop or view_img:  # Add bbox to image
                         c = int(cls)  # integer class
                         label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
-                        annotator.box_label(xyxy, label, color=colors(c, True))
-                        if save_crop:
-                            save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
+                        # annotator.box_label(xyxy, label, color=colors(c, True))
+                        box = xyxy
+                        p1, p2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
+                        mid_x = int((p2[0]-p1[0])/2)+p1[0]
+                        mid_y = int((p2[1]-p1[1])/2)+p1[1]
+                        __w, __h = (int(box[2])-int(box[0])), (int(box[3])-int(box[1]))
+                        xywh = (int(box[0]),int(box[1]),__w,__h)
+                        # print(xywh)
+                        center_coordinates = (mid_x, mid_y)
+                        if(mid_x > roi_bbox[0] and mid_x < roi_bbox[2] and mid_y > roi_bbox[1] and mid_y < roi_bbox[3]):
+                            detectedxywh_s.append(xywh)
+                        #     cv2.circle(im0, center_coordinates, 20, (255, 0, 0), -1)
+                        # if save_crop:
+                        #     save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
+                
+                track_res =tracker.update(detectedxywh_s)
+                for x_,y_,w_,h_,identity_obj,status in track_res:
+                    # if status == TrackerStatus.TRACKED or status == TrackerStatus.LOST:
+                    #     _counterbodoh = _counterbodoh + 1
+                    cv2.circle(im0, (x_,y_), 3, (255, 0, 0), -1)
+                    cv2.putText(im0, str(identity_obj+1), (x_,y_), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
+                detectedxywh_s = []
 
+                # for it in track_res:
+                #     x_,y_,w_,h_,identity_obj,status = it
+                #     if status == TrackerStatus.TRACKED or status == TrackerStatus.LOST:
+                #         _counterbodoh = _counterbodoh + 1
+
+                print(tracker.frame_detected_counts)
             # Print time (inference-only)
             LOGGER.info(f'{s}Done. ({t3 - t2:.3f}s)')
 
             # Stream results
             im0 = annotator.result()
+            # print(track_res)
             if view_img:
+                cv2.rectangle(im0, (x,y),(roi_bbox[2],roi_bbox[3]), (115, 206, 245), 3)
+
+                for key, count in tracker.frame_detected_counts.items():
+                    if count > 5:
+                        _counterbodoh += 1
+                cv2.putText(im0, str(_counterbodoh), (30,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (117, 115, 245), 5, cv2.LINE_AA)
+                _counterbodoh = 0
                 cv2.imshow(str(p), im0)
                 cv2.waitKey(1)  # 1 millisecond
 
