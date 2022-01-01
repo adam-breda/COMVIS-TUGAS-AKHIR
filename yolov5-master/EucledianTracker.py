@@ -11,7 +11,7 @@ class TrackerStatus(Enum):
 class EuclideanDistTracker:
     tracked_ever_counter = 0
     
-    def __init__(self, tolerance_lost_frame = 25, tolerance_px=50, min_frame_detected=25):
+    def __init__(self, tolerance_lost_frame = 25, tolerance_px=50, min_frame_detected=30):
         # Store the center positions of the objects
         self.center_points = {}
         # Keep the count of the IDs

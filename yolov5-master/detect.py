@@ -1,6 +1,7 @@
 # YOLOv5 🚀 by Ultralytics, GPL-3.0 license
 """
 Run inference on images, videos, directories, streams, etc.
+# py detect.py --weights yolov5s.pt --source ./input_video/1.mp4 --view-img
 
 Usage:
     $ python path/to/detect.py --weights yolov5s.pt --source 0  # webcam
@@ -18,6 +19,8 @@ import sys
 from pathlib import Path
 from typing import List, Tuple
 
+from torch.cuda import set_stream
+from Polyroi import PolyROI
 import cv2
 from numpy.core.numeric import identity
 from numpy.core.records import array
@@ -70,6 +73,7 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
     save_img = not nosave and not source.endswith('.txt')  # save inference images
     is_file = Path(source).suffix[1:] in (IMG_FORMATS + VID_FORMATS)
     is_url = source.lower().startswith(('rtsp://', 'rtmp://', 'http://', 'https://'))
+    roiPolygon = True
     webcam = source.isnumeric() or source.endswith('.txt') or (is_url and not is_file)
     if is_url and is_file:
         source = check_file(source)  # download
@@ -141,9 +145,14 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                 p, im0, frame = path, im0s.copy(), getattr(dataset, 'frame', 0)
 
             if roi_bbox == None:
-                x,y,w,h = cv2.selectROI(im0, False)
-                roi_bbox = (x, y, x+w, y+h)
-                print(roi_bbox)
+                if(roiPolygon == True):
+                    newPoly = PolyROI()
+                    roi_bbox = newPoly.MakeROI(im0)
+                    print(roi_bbox)
+                else:
+                    x,y,w,h = cv2.selectROI(im0, False)
+                    roi_bbox = (x, y, x+w, y+h)
+                    print(roi_bbox)
             
             p = Path(p)  # to Path
             save_path = str(save_dir / p.name)  # im.jpg
@@ -183,8 +192,12 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                         xywh = (int(box[0]),int(box[1]),__w,__h)
                         # print(xywh)
                         center_coordinates = (mid_x, mid_y)
-                        if(mid_x > roi_bbox[0] and mid_x < roi_bbox[2] and mid_y > roi_bbox[1] and mid_y < roi_bbox[3]):
-                            detectedxywh_s.append(xywh)
+                        if(roiPolygon == True):
+                            if(newPoly.checkInside(center_coordinates)):
+                                detectedxywh_s.append(xywh)
+                        else:
+                            if(mid_x > roi_bbox[0] and mid_x < roi_bbox[2] and mid_y > roi_bbox[1] and mid_y < roi_bbox[3]):
+                                detectedxywh_s.append(xywh)
                         #     cv2.circle(im0, center_coordinates, 20, (255, 0, 0), -1)
                         # if save_crop:
                         #     save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
@@ -197,12 +210,7 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                     cv2.putText(im0, str(identity_obj+1), (x_,y_), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
                 detectedxywh_s = []
 
-                # for it in track_res:
-                #     x_,y_,w_,h_,identity_obj,status = it
-                #     if status == TrackerStatus.TRACKED or status == TrackerStatus.LOST:
-                #         _counterbodoh = _counterbodoh + 1
-
-                print(tracker.frame_detected_counts)
+                # print(tracker.frame_detected_counts)
             # Print time (inference-only)
             LOGGER.info(f'{s}Done. ({t3 - t2:.3f}s)')
 
@@ -210,7 +218,12 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
             im0 = annotator.result()
             # print(track_res)
             if view_img:
-                cv2.rectangle(im0, (x,y),(roi_bbox[2],roi_bbox[3]), (115, 206, 245), 3)
+                if(roiPolygon == True):
+                    for i in range(len(roi_bbox) - 1):
+                        cv2.line(img=im0, pt1=roi_bbox[i], pt2=roi_bbox[i + 1], color=(255, 0, 0), thickness=2)
+                    cv2.line(img=im0, pt1=roi_bbox[0], pt2=roi_bbox[len(roi_bbox)-1], color=(255, 0, 0), thickness=2)
+                else:
+                    cv2.rectangle(im0, (x,y),(roi_bbox[2],roi_bbox[3]), (115, 206, 245), 3)
 
                 for key, count in tracker.frame_detected_counts.items():
                     if count > 5:
