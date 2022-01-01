@@ -15,8 +15,10 @@ class PolyROI():
 
         while True:
             key = cv2.waitKey(1) & 0xFF
-            if key == 27:
+            if key == 27 or key == 113 or key == 13:
                 break
+            # if cv2.waitKey(1) & 0xFF == ord('q'):
+            #     break
         cv2.destroyAllWindows()
         self.poly_path = mplPath.Path(np.array(self.roi_pts))
         return self.roi_pts
