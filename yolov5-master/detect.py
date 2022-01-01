@@ -1,7 +1,7 @@
 # YOLOv5 🚀 by Ultralytics, GPL-3.0 license
 """
 Run inference on images, videos, directories, streams, etc.
-# py detect.py --weights yolov5s.pt --source ./input_video/1.mp4 --view-img
+# py detect.py --weights yolov5s.pt --source ./input_video/1.mp4 --view-img --nosave
 
 Usage:
     $ python path/to/detect.py --weights yolov5s.pt --source 0  # webcam
