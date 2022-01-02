@@ -21,6 +21,7 @@ class EuclideanDistTracker:
         # Mininum frame dia tertrack, hingga akhirnya dia dianggap ada
         self.min_frame_detected = min_frame_detected
         self.frame_detected_counts = {}
+        # self.lastObjectCoor = {}
 
         # Toleransi perubahan jarak px di frame
         self.tolerance_px = tolerance_px
@@ -63,6 +64,7 @@ class EuclideanDistTracker:
                 objects_bbs_ids.append([x, y, w, h, id])
                 same_object_detected = True
                 self.frame_detected_counts[id] += 1
+                # self.frame_detected_counts[id] = [x, y]
 
 
             # New object is detected we assign the ID to that object

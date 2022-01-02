@@ -110,7 +110,7 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
 
     # Untuk mencari region of interest
     roi_bbox = None # (600, 602, 660, 231)
-    tracker = EuclideanDistTracker(0,30,min_frame_detected=10)
+    tracker = EuclideanDistTracker(0,30,min_frame_detected=20)
     _counterbodoh = 0
     for path, im, im0s, vid_cap, s in dataset:
         t1 = time_sync()
@@ -201,16 +201,32 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                         #     cv2.circle(im0, center_coordinates, 20, (255, 0, 0), -1)
                         # if save_crop:
                         #     save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
-                
+
+                # get center points before update
+                before_update_center_pts = tracker.center_points.copy()
+                # update the object tracker
                 track_res =tracker.update(detectedxywh_s)
+                # get new speed
+                obj_speed = {}
+                # print(tracker.center_points)
+                if(len(before_update_center_pts) != 0):
+                    for key,obj_before in before_update_center_pts.items():
+                        if(key in tracker.center_points.keys()):
+                            obj_speed[key] = [tracker.center_points[key][0]-obj_before[0],tracker.center_points[key][1]-obj_before[1]]
+                            # print(tracker.center_points[key][0]," - ",obj_before[0]," || ",tracker.center_points[key][1]," - ",obj_before[1])
+
                 for x_,y_,w_,h_,identity_obj,status in track_res:
                     # if status == TrackerStatus.TRACKED or status == TrackerStatus.LOST:
                     #     _counterbodoh = _counterbodoh + 1
                     cv2.circle(im0, (x_,y_), 3, (255, 0, 0), -1)
                     cv2.putText(im0, str(identity_obj+1), (x_,y_), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
+                    if(len(obj_speed)!= 0 and identity_obj in obj_speed):
+                        cv2.putText(im0, str(f"speed {obj_speed[identity_obj]}"), (x_,y_+20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 1, cv2.LINE_AA)
+                    else:
+                        cv2.putText(im0, str(f"speed 0px"), (x_,y_+20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 1, cv2.LINE_AA)
                 detectedxywh_s = []
 
-                # print(tracker.frame_detected_counts)
+                # print(tracker.center_points)
             # Print time (inference-only)
             LOGGER.info(f'{s}Done. ({t3 - t2:.3f}s)')
 
