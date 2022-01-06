@@ -14,6 +14,7 @@ class EuclideanDistTracker:
     def __init__(self, tolerance_lost_frame = 25, tolerance_px=50, min_frame_detected=30):
         # Store the center positions of the objects
         self.center_points = {}
+        self.firstcenter_points = {}
         # Keep the count of the IDs
         # each time a new object id detected, the count will increase by one
         self.id_count = 0

@@ -5,7 +5,9 @@ import joblib
 import matplotlib.path as mplPath
 
 class PolyROI():
-    roi_pts = []
+    def __init__(self):
+        self.roi_pts = []
+
     def MakeROI(self,img):
         self.img = img
         # if(self.img != None):
@@ -39,7 +41,7 @@ class PolyROI():
                 mask = np.zeros(self.img.shape, np.uint8)
                 points = np.array(self.roi_pts, np.int32)
                 points = points.reshape((-1, 1, 2))
-                # 画多边形
+                # visualisasi
                 mask = cv2.polylines(mask, [points], True, (255, 255, 255), 2)
                 mask2 = cv2.fillPoly(mask.copy(), [points], (255, 255, 255))
                 mask3 = cv2.fillPoly(mask.copy(), [points], (0, 255, 0))
