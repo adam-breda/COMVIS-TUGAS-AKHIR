@@ -111,7 +111,10 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
     # Untuk mencari region of interest
     roi_bbox = None # (600, 602, 660, 231)
     tracker = EuclideanDistTracker(tolerance_lost_frame = 20,tolerance_px=100,min_frame_detected=30)
-    video_fps = 24
+    ## get video fps
+    video = cv2.VideoCapture(source)
+    video_fps = video.get(cv2.CAP_PROP_FPS)
+    video.release()
     obj_speed = {}
     firstframeObject = {}
     _counterbodoh = 0
@@ -217,7 +220,7 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                         firstframeObject[key] = frame
                     if(key not in obj_speed.keys()):
                         if(speedPoly.checkInside(objectCenter)):
-                            obj_speed[key] = road_length_speed/(frame+1-firstframeObject[key])*video_fps
+                            obj_speed[key] = road_length_speed/1000/(frame+1-firstframeObject[key])*video_fps*3600
 
                 for x_,y_,w_,h_,identity_obj,status in track_res:
                     # if status == TrackerStatus.TRACKED or status == TrackerStatus.LOST:
@@ -225,7 +228,7 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                     cv2.circle(im0, (x_,y_), 3, (255, 0, 0), -1)
                     cv2.putText(im0, str(identity_obj+1), (x_,y_), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
                     if(len(obj_speed)!= 0 and identity_obj in obj_speed):
-                        cv2.putText(im0, str("speed {:.2f}m/s".format(obj_speed[identity_obj])), (x_,y_+20), cv2.FONT_HERSHEY_PLAIN, 2, (54, 209, 75), 2, cv2.LINE_AA)
+                        cv2.putText(im0, str("speed {:.2f}km/jam".format(obj_speed[identity_obj])), (x_,y_+20), cv2.FONT_HERSHEY_PLAIN, 2, (54, 209, 75), 2, cv2.LINE_AA)
                 detectedxywh_s = []
             # Print time (inference-only)
             LOGGER.info(f'{s}Done. ({t3 - t2:.3f}s)')
