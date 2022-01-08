@@ -114,7 +114,6 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
     video_fps = 24
     obj_speed = {}
     firstframeObject = {}
-    road_length_speed = 200
     _counterbodoh = 0
     for path, im, im0s, vid_cap, s in dataset:
         t1 = time_sync()
@@ -153,12 +152,14 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                     roi_bbox = newPoly.MakeROI(im0)
                     print(roi_bbox)
                     speedPoly = PolyROI()
-                    speed_bbox = speedPoly.MakeROI(im0)
+                    speed_bbox = speedPoly.MakeROI(im0,color = (0, 255, 255))
                     print(speed_bbox)
                 else:
                     x,y,w,h = cv2.selectROI(im0, False)
                     roi_bbox = (x, y, x+w, y+h)
                     print(roi_bbox)
+                print('enter distance between Start of ROI and Start Of Speed BBox in meters:')
+                road_length_speed = int(input())
             
             p = Path(p)  # to Path
             save_path = str(save_dir / p.name)  # im.jpg

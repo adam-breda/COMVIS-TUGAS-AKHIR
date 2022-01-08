@@ -8,8 +8,12 @@ class PolyROI():
     def __init__(self):
         self.roi_pts = []
 
-    def MakeROI(self,img):
+    def MakeROI(self,img,color:tuple = None):
         self.img = img
+        if (color == None):
+            self.color = (255, 0, 0)
+        else:
+            self.color = color
         # if(self.img != None):
         print("Image Loaded")
         cv2.namedWindow('makeROI')
@@ -30,7 +34,7 @@ class PolyROI():
 
     def draw_roi(self,event, x, y, flags, param):
             img2 = self.img.copy()
-
+            
             if event == cv2.EVENT_LBUTTONDOWN:
                 self.roi_pts.append((x, y))  
 
@@ -61,7 +65,7 @@ class PolyROI():
             if len(self.roi_pts) > 1:
                 for i in range(len(self.roi_pts) - 1):
                     cv2.circle(img2, self.roi_pts[i], 5, (0, 0, 255), -1)
-                    cv2.line(img=img2, pt1=self.roi_pts[i], pt2=self.roi_pts[i + 1], color=(255, 0, 0), thickness=2)
+                    cv2.line(img=img2, pt1=self.roi_pts[i], pt2=self.roi_pts[i + 1], color=self.color, thickness=2)
             cv2.imshow('makeROI', img2)
 
     def checkInside(self,point):
