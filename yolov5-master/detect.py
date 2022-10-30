@@ -109,14 +109,18 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
     dt, seen = [0.0, 0.0, 0.0], 0
 
     # Untuk mencari region of interest
-    roi_bbox = None # (600, 602, 660, 231)
+    roi_bbox = None
+    speedPoly = None
+    #object tracker
     tracker = EuclideanDistTracker(tolerance_lost_frame = 20,tolerance_px=100,min_frame_detected=30)
     ## get video fps
     video = cv2.VideoCapture(source)
     video_fps = video.get(cv2.CAP_PROP_FPS)
     video.release()
+    #variabel perhitungan speed
     obj_speed = {}
     firstframeObject = {}
+    #variabel counter kendaraan
     _counterbodoh = 0
     for path, im, im0s, vid_cap, s in dataset:
         t1 = time_sync()
