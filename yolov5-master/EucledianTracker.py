@@ -14,6 +14,7 @@ class EuclideanDistTracker:
     def __init__(self, tolerance_lost_frame = 25, tolerance_px=50, min_frame_detected=30):
         # Store the center positions of the objects
         self.center_points = {}
+        self.firstcenter_points = {}
         # Keep the count of the IDs
         # each time a new object id detected, the count will increase by one
         self.id_count = 0
@@ -21,6 +22,7 @@ class EuclideanDistTracker:
         # Mininum frame dia tertrack, hingga akhirnya dia dianggap ada
         self.min_frame_detected = min_frame_detected
         self.frame_detected_counts = {}
+        # self.lastObjectCoor = {}
 
         # Toleransi perubahan jarak px di frame
         self.tolerance_px = tolerance_px
@@ -63,6 +65,7 @@ class EuclideanDistTracker:
                 objects_bbs_ids.append([x, y, w, h, id])
                 same_object_detected = True
                 self.frame_detected_counts[id] += 1
+                # self.frame_detected_counts[id] = [x, y]
 
 
             # New object is detected we assign the ID to that object

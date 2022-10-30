@@ -5,9 +5,15 @@ import joblib
 import matplotlib.path as mplPath
 
 class PolyROI():
-    roi_pts = []
-    def MakeROI(self,img):
+    def __init__(self):
+        self.roi_pts = []
+
+    def MakeROI(self,img,color:tuple = None):
         self.img = img
+        if (color == None):
+            self.color = (255, 0, 0)
+        else:
+            self.color = color
         # if(self.img != None):
         print("Image Loaded")
         cv2.namedWindow('makeROI')
@@ -15,8 +21,10 @@ class PolyROI():
 
         while True:
             key = cv2.waitKey(1) & 0xFF
-            if key == 27:
+            if key == 27 or key == 113 or key == 13:
                 break
+            # if cv2.waitKey(1) & 0xFF == ord('q'):
+            #     break
         cv2.destroyAllWindows()
         self.poly_path = mplPath.Path(np.array(self.roi_pts))
         return self.roi_pts
@@ -26,7 +34,7 @@ class PolyROI():
 
     def draw_roi(self,event, x, y, flags, param):
             img2 = self.img.copy()
-
+            
             if event == cv2.EVENT_LBUTTONDOWN:
                 self.roi_pts.append((x, y))  
 
@@ -37,7 +45,7 @@ class PolyROI():
                 mask = np.zeros(self.img.shape, np.uint8)
                 points = np.array(self.roi_pts, np.int32)
                 points = points.reshape((-1, 1, 2))
-                # 画多边形
+                # visualisasi
                 mask = cv2.polylines(mask, [points], True, (255, 255, 255), 2)
                 mask2 = cv2.fillPoly(mask.copy(), [points], (255, 255, 255))
                 mask3 = cv2.fillPoly(mask.copy(), [points], (0, 255, 0))
@@ -57,7 +65,7 @@ class PolyROI():
             if len(self.roi_pts) > 1:
                 for i in range(len(self.roi_pts) - 1):
                     cv2.circle(img2, self.roi_pts[i], 5, (0, 0, 255), -1)
-                    cv2.line(img=img2, pt1=self.roi_pts[i], pt2=self.roi_pts[i + 1], color=(255, 0, 0), thickness=2)
+                    cv2.line(img=img2, pt1=self.roi_pts[i], pt2=self.roi_pts[i + 1], color=self.color, thickness=2)
             cv2.imshow('makeROI', img2)
 
     def checkInside(self,point):

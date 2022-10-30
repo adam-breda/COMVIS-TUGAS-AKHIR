@@ -17,92 +17,8 @@
    <layout class="QGridLayout" name="gridLayout_2">
     <item row="0" column="0" colspan="2">
      <layout class="QGridLayout" name="gridLayout">
-      <item row="1" column="2">
-       <widget class="QPushButton" name="select_video_three">
-        <property name="text">
-         <string>Open File</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QPushButton" name="select_video_two">
-        <property name="text">
-         <string>Open File</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QPushButton" name="select_video_one">
-        <property name="text">
-         <string>Open File</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="video_one">
-        <property name="autoFillBackground">
-         <bool>true</bool>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::Box</enum>
-        </property>
-        <property name="lineWidth">
-         <number>2</number>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="scaledContents">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="video_two">
-        <property name="autoFillBackground">
-         <bool>true</bool>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::Box</enum>
-        </property>
-        <property name="lineWidth">
-         <number>2</number>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="scaledContents">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="2">
-       <widget class="QLabel" name="video_three">
-        <property name="autoFillBackground">
-         <bool>true</bool>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::Box</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Plain</enum>
-        </property>
-        <property name="lineWidth">
-         <number>2</number>
-        </property>
-        <property name="midLineWidth">
-         <number>0</number>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="scaledContents">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QPlainTextEdit" name="plainTextEdit">
+       <widget class="QPlainTextEdit" name="input_vehicle2">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
           <horstretch>0</horstretch>
@@ -116,15 +32,18 @@
          </size>
         </property>
         <property name="readOnly">
-         <bool>true</bool>
+         <bool>false</bool>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::TextEditable|Qt::TextSelectableByMouse</set>
         </property>
         <property name="placeholderText">
          <string notr="true">Detected Vehicles :</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="2">
-       <widget class="QPlainTextEdit" name="plainTextEdit_2">
+      <item row="0" column="3">
+       <widget class="QPlainTextEdit" name="input_vehicle3">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
           <horstretch>0</horstretch>
@@ -138,15 +57,18 @@
          </size>
         </property>
         <property name="readOnly">
-         <bool>true</bool>
+         <bool>false</bool>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::TextEditable|Qt::TextSelectableByMouse</set>
         </property>
         <property name="placeholderText">
          <string>Detected Vehicles :</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
-       <widget class="QPlainTextEdit" name="plainTextEdit_3">
+      <item row="0" column="1">
+       <widget class="QPlainTextEdit" name="input_vehicle1">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
           <horstretch>0</horstretch>
@@ -160,7 +82,10 @@
          </size>
         </property>
         <property name="readOnly">
-         <bool>true</bool>
+         <bool>false</bool>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::TextEditable|Qt::TextSelectableByMouse</set>
         </property>
         <property name="backgroundVisible">
          <bool>false</bool>
@@ -170,10 +95,19 @@
         </property>
        </widget>
       </item>
+      <item row="1" column="1">
+       <widget class="QLCDNumber" name="lcd_road1"/>
+      </item>
+      <item row="1" column="2">
+       <widget class="QLCDNumber" name="lcd_road2"/>
+      </item>
+      <item row="1" column="3">
+       <widget class="QLCDNumber" name="lcd_road3"/>
+      </item>
      </layout>
     </item>
     <item row="1" column="0" colspan="2">
-     <widget class="QPushButton" name="btn_run_detection">
+     <widget class="QPushButton" name="btn_update_timer">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
         <horstretch>0</horstretch>
@@ -181,7 +115,7 @@
        </sizepolicy>
       </property>
       <property name="text">
-       <string>Run Detection</string>
+       <string>Update Timer</string>
       </property>
      </widget>
     </item>

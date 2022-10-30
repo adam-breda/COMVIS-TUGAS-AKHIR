@@ -1,7 +1,7 @@
 # YOLOv5 🚀 by Ultralytics, GPL-3.0 license
 """
 Run inference on images, videos, directories, streams, etc.
-# py detect.py --weights yolov5s.pt --source ./input_video/1.mp4 --view-img
+# py detect.py --weights yolov5s.pt --source ./input_video/1.mp4 --view-img --nosave
 
 Usage:
     $ python path/to/detect.py --weights yolov5s.pt --source 0  # webcam
@@ -109,8 +109,18 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
     dt, seen = [0.0, 0.0, 0.0], 0
 
     # Untuk mencari region of interest
-    roi_bbox = None # (600, 602, 660, 231)
-    tracker = EuclideanDistTracker(0,30,min_frame_detected=10)
+    roi_bbox = None
+    speedPoly = None
+    #object tracker
+    tracker = EuclideanDistTracker(tolerance_lost_frame = 20,tolerance_px=100,min_frame_detected=30)
+    ## get video fps
+    video = cv2.VideoCapture(source)
+    video_fps = video.get(cv2.CAP_PROP_FPS)
+    video.release()
+    #variabel perhitungan speed
+    obj_speed = {}
+    firstframeObject = {}
+    #variabel counter kendaraan
     _counterbodoh = 0
     for path, im, im0s, vid_cap, s in dataset:
         t1 = time_sync()
@@ -143,16 +153,20 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                 s += f'{i}: '
             else:
                 p, im0, frame = path, im0s.copy(), getattr(dataset, 'frame', 0)
-
             if roi_bbox == None:
                 if(roiPolygon == True):
                     newPoly = PolyROI()
                     roi_bbox = newPoly.MakeROI(im0)
                     print(roi_bbox)
+                    speedPoly = PolyROI()
+                    speed_bbox = speedPoly.MakeROI(im0,color = (0, 255, 255))
+                    print(speed_bbox)
                 else:
                     x,y,w,h = cv2.selectROI(im0, False)
                     roi_bbox = (x, y, x+w, y+h)
                     print(roi_bbox)
+                print('enter distance between Start of ROI and Start Of Speed BBox in meters:')
+                road_length_speed = int(input())
             
             p = Path(p)  # to Path
             save_path = str(save_dir / p.name)  # im.jpg
@@ -201,16 +215,25 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                         #     cv2.circle(im0, center_coordinates, 20, (255, 0, 0), -1)
                         # if save_crop:
                         #     save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
-                
+
+                # update the object tracker
                 track_res =tracker.update(detectedxywh_s)
+                # get new speed
+                for key,objectCenter in tracker.center_points.items():
+                    if(key not in firstframeObject.keys()):
+                        firstframeObject[key] = frame
+                    if(key not in obj_speed.keys()):
+                        if(speedPoly.checkInside(objectCenter)):
+                            obj_speed[key] = road_length_speed/1000/(frame+1-firstframeObject[key])*video_fps*3600
+
                 for x_,y_,w_,h_,identity_obj,status in track_res:
                     # if status == TrackerStatus.TRACKED or status == TrackerStatus.LOST:
                     #     _counterbodoh = _counterbodoh + 1
                     cv2.circle(im0, (x_,y_), 3, (255, 0, 0), -1)
                     cv2.putText(im0, str(identity_obj+1), (x_,y_), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
+                    if(len(obj_speed)!= 0 and identity_obj in obj_speed):
+                        cv2.putText(im0, str("speed {:.2f}km/jam".format(obj_speed[identity_obj])), (x_,y_+20), cv2.FONT_HERSHEY_PLAIN, 2, (54, 209, 75), 2, cv2.LINE_AA)
                 detectedxywh_s = []
-
-                # print(tracker.frame_detected_counts)
             # Print time (inference-only)
             LOGGER.info(f'{s}Done. ({t3 - t2:.3f}s)')
 
@@ -222,6 +245,9 @@ def run(weights=ROOT / 'yolov5s.pt',  # model.pt path(s)
                     for i in range(len(roi_bbox) - 1):
                         cv2.line(img=im0, pt1=roi_bbox[i], pt2=roi_bbox[i + 1], color=(255, 0, 0), thickness=2)
                     cv2.line(img=im0, pt1=roi_bbox[0], pt2=roi_bbox[len(roi_bbox)-1], color=(255, 0, 0), thickness=2)
+                    for i in range(len(speed_bbox) - 1):
+                        cv2.line(img=im0, pt1=speed_bbox[i], pt2=speed_bbox[i + 1], color=(0, 255, 255), thickness=2)
+                    cv2.line(img=im0, pt1=speed_bbox[0], pt2=speed_bbox[len(speed_bbox)-1], color=(0, 255, 255), thickness=2)
                 else:
                     cv2.rectangle(im0, (x,y),(roi_bbox[2],roi_bbox[3]), (115, 206, 245), 3)
 
